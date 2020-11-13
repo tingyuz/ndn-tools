@@ -186,7 +186,7 @@ main(int argc, char* argv[])
   try {
     Face face;
     KeyChain keyChain;
-    NdnPoke program(face, keyChain, std::cin, options);
+    NdnPoke program(face, keyChain, options);
 
     program.start();
     face.processEvents();

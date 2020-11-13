@@ -33,6 +33,8 @@ Tracer::Tracer(PingServer& pingServer, const Options& options)
   }
 }
 
+
+// this is the printout msg on server side
 void
 Tracer::onReceive(const Name& name)
 {

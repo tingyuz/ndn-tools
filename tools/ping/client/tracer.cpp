@@ -29,20 +29,24 @@ namespace client {
 Tracer::Tracer(Ping& ping, const Options& options)
   : m_options(options)
 {
-  ping.afterData.connect(bind(&Tracer::onData, this, _1, _2));
+  ping.afterData.connect(bind(&Tracer::onData, this, ping.GetLocation(), _2));
   ping.afterNack.connect(bind(&Tracer::onNack, this, _1, _2, _3));
   ping.afterTimeout.connect(bind(&Tracer::onTimeout, this, _1));
 }
 
+
+//this is the output on the client side
 void
-Tracer::onData(uint64_t seq, Rtt rtt)
+Tracer::onData(std::string loc, Rtt rtt)
 {
-  if (m_options.shouldPrintTimestamp) {
+  std::cout << loc << std::endl;
+  /*if (m_options.shouldPrintTimestamp) {
     std::cout << time::toIsoString(time::system_clock::now()) << " - ";
   }
 
   std::cout << "content from " << m_options.prefix << ": seq=" << seq << " time="
             << rtt.count() << " ms" << std::endl;
+            */
 }
 
 void

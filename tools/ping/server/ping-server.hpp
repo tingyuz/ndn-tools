@@ -99,12 +99,15 @@ private:
   void
   onInterest(const Interest& interest);
 
+  //void
+  //fillPayload() const;
+
 private:
   const Options& m_options;
   Face& m_face;
   KeyChain& m_keyChain;
   size_t m_nPings;
-  Block m_payload;
+  //Block m_payload;
   RegisteredPrefixHandle m_registeredPrefix;
 };
 

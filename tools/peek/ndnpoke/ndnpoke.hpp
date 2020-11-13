@@ -56,7 +56,7 @@ struct PokeOptions
 class NdnPoke : boost::noncopyable
 {
 public:
-  NdnPoke(Face& face, KeyChain& keyChain, std::istream& input, const PokeOptions& options);
+  NdnPoke(Face& face, KeyChain& keyChain, const PokeOptions& options);
 
   enum class Result {
     DATA_SENT = 0,
@@ -82,6 +82,8 @@ public:
 private:
   shared_ptr<Data>
   createData() const;
+  //shared_ptr<Data>
+  //createData(std::string name) const;
 
   void
   sendData(const Data& data);
@@ -99,7 +101,7 @@ private:
   const PokeOptions m_options;
   Face& m_face;
   KeyChain& m_keyChain;
-  std::istream& m_input;
+  //std::istream& m_input;
   Scheduler m_scheduler;
   ScopedRegisteredPrefixHandle m_registeredPrefix;
   scheduler::ScopedEventId m_timeoutEvent;

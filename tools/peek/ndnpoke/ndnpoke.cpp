@@ -33,11 +33,11 @@
 namespace ndn {
 namespace peek {
 
-NdnPoke::NdnPoke(Face& face, KeyChain& keyChain, std::istream& input, const PokeOptions& options)
+NdnPoke::NdnPoke(Face& face, KeyChain& keyChain, const PokeOptions& options)
   : m_options(options)
   , m_face(face)
   , m_keyChain(keyChain)
-  , m_input(input)
+  //, m_input(input)
   , m_scheduler(m_face.getIoService())
 {
 }
@@ -66,9 +66,15 @@ NdnPoke::createData() const
     data->setFinalBlock(m_options.name.at(-1));
   }
 
-  OBufferStream os;
-  os << m_input.rdbuf();
-  data->setContent(os.buf());
+  //OBufferStream os;
+  //os << m_input.rdbuf();
+  //data->setContent(os.buf());
+  
+  std::stringstream ss;
+  ss.str("nfs://mnt/data");  
+  OBufferStream obuf;
+  obuf << ss.rdbuf();
+  data->setContent(obuf.buf());
 
   m_keyChain.sign(*data, m_options.signingInfo);
 

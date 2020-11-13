@@ -56,6 +56,14 @@ class Ping : noncopyable
 public:
   Ping(Face& face, const Options& options);
 
+  enum class Result {
+    DATA = 0,
+    UNKNOWN = 1,
+    // 2 is reserved for "malformed command line"
+    TIMEOUT = 3,
+    NACK = 4,
+  };
+
   /**
    * @brief Signals on the successful return of a Data packet
    *
@@ -103,6 +111,8 @@ public:
   void
   stop();
 
+  std::string GetLocation();
+
 private:
   /**
    * @brief Creates a ping Name from the sequence number
@@ -124,8 +134,10 @@ private:
    * @param seq ping sequence number
    * @param sendTime time ping sent
    */
+  //void
+  //onData(uint64_t seq, const time::steady_clock::TimePoint& sendTime);
   void
-  onData(uint64_t seq, const time::steady_clock::TimePoint& sendTime);
+  onData(const Data& data);
 
   /**
    * @brief Called when a Nack is received in response to a ping
@@ -162,6 +174,9 @@ private:
   Face& m_face;
   Scheduler m_scheduler;
   scheduler::ScopedEventId m_nextPingEvent;
+  scheduler::ScopedEventId m_timeoutEvent;
+  Result m_result = Result::UNKNOWN;
+  std::string m_location;
 };
 
 } // namespace client

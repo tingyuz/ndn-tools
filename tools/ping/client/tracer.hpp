@@ -46,11 +46,11 @@ public:
   /**
    * @brief Prints ping results when a Data packet is received
    *
-   * @param seq ping sequence number
+   * @param loc the location of file on NFS
    * @param rtt round trip time
    */
   void
-  onData(uint64_t seq, Rtt rtt);
+  onData(std::string loc, Rtt rtt);
 
   /**
    * @brief Prints NackReason when a Nack is received

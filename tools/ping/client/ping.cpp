@@ -65,7 +65,8 @@ Ping::performPing()
 
   auto now = time::steady_clock::now();
   m_face.expressInterest(interest,
-                         bind(&Ping::onData, this, m_nextSeq, now),
+                         [this] (auto&&, const auto& data) { this->onData(data); },
+                         //bind(&Ping::onData, this, m_nextSeq, now),
                          bind(&Ping::onNack, this, _2, m_nextSeq, now),
                          bind(&Ping::onTimeout, this, m_nextSeq));
 
@@ -82,11 +83,30 @@ Ping::performPing()
 }
 
 void
-Ping::onData(uint64_t seq, const time::steady_clock::TimePoint& sendTime)
+Ping::onData(const Data& data)
+//Ping::onData(uint64_t seq, const time::steady_clock::TimePoint& sendTime)
 {
-  time::nanoseconds rtt = time::steady_clock::now() - sendTime;
-  afterData(seq, rtt);
-  finish();
+  //time::nanoseconds rtt = time::steady_clock::now() - sendTime;
+  //afterData(seq, rtt);
+  //finish();
+  m_result = Result::DATA;
+  //m_timeoutEvent.cancel();
+
+  /*if (m_options.isVerbose) {
+    std::cerr << "DATA: " << data.getName() << "\nRTT: "
+              << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_sendTime).count()
+              << " ms" << std::endl;
+  }*/
+
+  /*if (m_options.wantPayloadOnly) {
+    const Block& block = data.getContent();
+    std::cout.write(reinterpret_cast<const char*>(block.value()), block.value_size());
+  }
+  else {
+    */
+  const Block& block = data.wireEncode();
+  m_location = reinterpret_cast<const char*>(block.wire()), block.size();
+  //std::cout.write(reinterpret_cast<const char*>(block.wire()), block.size());  
 }
 
 void
@@ -123,6 +143,11 @@ Ping::makePingName(uint64_t seq) const
   }
   name.append(to_string(seq));
   return name;
+}
+
+std::string Ping::GetLocation()
+{
+  return m_location;  
 }
 
 } // namespace client

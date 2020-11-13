@@ -24,6 +24,8 @@
 
 #include <ndn-cxx/security/signing-helpers.hpp>
 
+#include <ndn-cxx/encoding/buffer-stream.hpp>
+
 namespace ndn {
 namespace ping {
 namespace server {
@@ -34,9 +36,9 @@ PingServer::PingServer(Face& face, KeyChain& keyChain, const Options& options)
   , m_keyChain(keyChain)
   , m_nPings(0)
 {
-  auto b = make_shared<Buffer>();
-  b->assign(m_options.payloadSize, 'a');
-  m_payload = Block(tlv::Content, std::move(b));
+  //auto b = make_shared<Buffer>();
+  //b->assign(m_options.payloadSize, 'a');
+  //m_payload = Block(tlv::Content, std::move(b));
 }
 
 void
@@ -66,10 +68,16 @@ void
 PingServer::onInterest(const Interest& interest)
 {
   afterReceive(interest.getName());
-
+  
   auto data = make_shared<Data>(interest.getName());
   data->setFreshnessPeriod(m_options.freshnessPeriod);
-  data->setContent(m_payload);
+  
+  std::stringstream ss;
+  ss.str("nfs://mnt/data");  
+  OBufferStream obuf;
+  obuf << ss.rdbuf();
+  data->setContent(obuf.buf());
+  //data->setContent(m_payload);
   m_keyChain.sign(*data, signingWithSha256());
   m_face.put(*data);
 
@@ -78,6 +86,17 @@ PingServer::onInterest(const Interest& interest)
     afterFinish();
   }
 }
+
+/*void
+PingServer::fillPayload() const
+{  
+  std::stringstream ss;
+  ss.str("nfs://mnt/data");  
+  OBufferStream obuf;
+  obuf << ss.rdbuf();
+  m_payload = Block(tlv::Content, obuf.buf());  
+}*/
+
 
 } // namespace server
 } // namespace ping
