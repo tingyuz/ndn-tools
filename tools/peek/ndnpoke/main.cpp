@@ -1,13 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2019,  Regents of the University of California,
- *                           Arizona Board of Regents,
- *                           Colorado State University,
- *                           University Pierre & Marie Curie, Sorbonne University,
- *                           Washington University in St. Louis,
- *                           Beijing Institute of Technology,
- *                           The University of Memphis.
- *
+ * Copyright (c) 2020 DELL
  * This file is part of ndn-tools (Named Data Networking Essential Tools).
  * See AUTHORS.md for complete list of ndn-tools authors and contributors.
  *
@@ -22,8 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
- * @author Davide Pesavento <davidepesa@gmail.com>
+ * @author Tingyu Zeng 
  */
 
 #include "ndnpoke.hpp"
@@ -37,9 +29,9 @@ namespace po = boost::program_options;
 static void
 usage(std::ostream& os, const std::string& program, const po::options_description& options)
 {
-  os << "Usage: " << program << " [options] /name\n"
+  os << "Usage: " << program << "\n"
      << "\n"
-     << "Reads a payload from the standard input and sends it as a single Data packet.\n"
+     << "Sends a single Data packet back to the client.\n"
      << options;
 }
 
@@ -48,17 +40,13 @@ main(int argc, char* argv[])
 {
   std::string progName(argv[0]);
   PokeOptions options;
-  std::string signingStr;
-  bool wantDigestSha256 = false;
+  std::string signingStr;  
 
   po::options_description genericOptDesc("Generic options");
   genericOptDesc.add_options()
-    ("help,h",        "print help and exit")
-    ("unsolicited,u", po::bool_switch(&options.wantUnsolicited),
-                      "send the Data packet without waiting for an incoming Interest")
+    ("help,h",        "print help and exit")    
     ("timeout,w",     po::value<time::milliseconds::rep>(), "execution timeout, in milliseconds")
-    ("verbose,v",     po::bool_switch(&options.isVerbose), "turn on verbose output")
-    ("version,V",     "print version and exit")
+    ("verbose,v",     po::bool_switch(&options.isVerbose), "turn on verbose output")    
   ;
 
   po::options_description dataOptDesc("Data construction");
@@ -73,19 +61,8 @@ main(int argc, char* argv[])
   po::options_description visibleOptDesc;
   visibleOptDesc.add(genericOptDesc).add(dataOptDesc);
 
-  po::options_description hiddenOptDesc;
-  hiddenOptDesc.add_options()
-    ("name", po::value<std::string>(), "Data name");
-
-  po::options_description deprecatedOptDesc;
-  deprecatedOptDesc.add_options()
-    ("force,f",     po::bool_switch())
-    ("identity,i",  po::value<std::string>())
-    ("digest,D",    po::bool_switch(&wantDigestSha256))
-  ;
-
   po::options_description optDesc;
-  optDesc.add(visibleOptDesc).add(hiddenOptDesc).add(deprecatedOptDesc);
+  optDesc.add(visibleOptDesc);
 
   po::positional_options_description optPos;
   optPos.add("name", -1);
@@ -99,44 +76,11 @@ main(int argc, char* argv[])
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 2;
   }
-
-  if (vm["force"].as<bool>()) {
-    std::cerr << "WARNING: option '-f/--force' is deprecated and will be removed "
-                 "in the near future. Use '-u/--unsolicited' instead." << std::endl;
-    options.wantUnsolicited = true;
-  }
-  if (wantDigestSha256 || vm.count("identity") > 0) {
-    std::cerr << "WARNING: options '-i/--identity' and '-D/--digest' are deprecated and will be "
-                 "removed in the near future. Use '-S/--signing-info' instead." << std::endl;
-  }
+ 
 
   if (vm.count("help") > 0) {
     usage(std::cout, progName, visibleOptDesc);
     return 0;
-  }
-
-  if (vm.count("version") > 0) {
-    std::cout << "ndnpoke " << tools::VERSION << std::endl;
-    return 0;
-  }
-
-  if (vm.count("name") == 0) {
-    std::cerr << "ERROR: missing name\n\n";
-    usage(std::cerr, progName, visibleOptDesc);
-    return 2;
-  }
-
-  try {
-    options.name = vm["name"].as<std::string>();
-  }
-  catch (const Name::Error& e) {
-    std::cerr << "ERROR: invalid name: " << e.what() << std::endl;
-    return 2;
-  }
-
-  if (options.name.empty()) {
-    std::cerr << "ERROR: name cannot have zero components" << std::endl;
-    return 2;
   }
 
   options.freshnessPeriod = time::milliseconds(vm["freshness"].as<time::milliseconds::rep>());
@@ -144,25 +88,7 @@ main(int argc, char* argv[])
     std::cerr << "ERROR: freshness cannot be negative" << std::endl;
     return 2;
   }
-
-  if (vm.count("identity") > 0) {
-    if (wantDigestSha256) {
-      std::cerr << "ERROR: conflicting '--digest' and '--identity' options specified" << std::endl;
-      return 2;
-    }
-    try {
-      options.signingInfo.setSigningIdentity(vm["identity"].as<std::string>());
-    }
-    catch (const Name::Error& e) {
-      std::cerr << "ERROR: invalid identity name: " << e.what() << std::endl;
-      return 2;
-    }
-  }
-
-  if (wantDigestSha256) {
-    options.signingInfo.setSha256Signing();
-  }
-
+  
   try {
     options.signingInfo = security::SigningInfo(signingStr);
   }
@@ -171,11 +97,7 @@ main(int argc, char* argv[])
     return 2;
   }
 
-  if (vm.count("timeout") > 0) {
-    if (options.wantUnsolicited) {
-      std::cerr << "ERROR: conflicting '--unsolicited' and '--timeout' options specified" << std::endl;
-      return 2;
-    }
+  if (vm.count("timeout") > 0) {    
     options.timeout = time::milliseconds(vm["timeout"].as<time::milliseconds::rep>());
     if (*options.timeout < 0_ms) {
       std::cerr << "ERROR: timeout cannot be negative" << std::endl;

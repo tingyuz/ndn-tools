@@ -22,8 +22,7 @@
  * You should have received a copy of the GNU General Public License along with
  * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author Jerald Paul Abraham <jeraldabraham@email.arizona.edu>
- * @author Davide Pesavento <davidepesa@gmail.com>
+ * @author Tingyu Zeng
  */
 
 #include "ndnpoke.hpp"
@@ -37,7 +36,6 @@ NdnPoke::NdnPoke(Face& face, KeyChain& keyChain, const PokeOptions& options)
   : m_options(options)
   , m_face(face)
   , m_keyChain(keyChain)
-  //, m_input(input)
   , m_scheduler(m_face.getIoService())
 {
 }
@@ -45,33 +43,37 @@ NdnPoke::NdnPoke(Face& face, KeyChain& keyChain, const PokeOptions& options)
 void
 NdnPoke::start()
 {
-  auto data = createData();
+  auto data1 = createData("/ndn/dell/ep1");
+  auto data2 = createData("/ndn/dell/ep2");
 
-  if (m_options.wantUnsolicited) {
-    return sendData(*data);
-  }
-
-  m_registeredPrefix = m_face.setInterestFilter(m_options.name,
-    [this, data] (auto&&, const auto& interest) { this->onInterest(interest, *data); },
+  //m_registeredPrefix = m_face.setInterestFilter(Name("/ndn/dell/ep1"),
+  m_face.setInterestFilter(Name("/ndn/dell/ep1"),
+    [this, data1] (auto&&, const auto& interest) { this->onInterest(interest, *data1); },    
     [this] (auto&&) { this->onRegSuccess(); },
     [this] (auto&&, const auto& reason) { this->onRegFailure(reason); });
+
+  m_face.setInterestFilter(Name("/ndn/dell/ep2"),    
+    [this, data2] (auto&&, const auto& interest) { this->onInterest(interest, *data2); },
+    [this] (auto&&) { this->onRegSuccess(); }, 
+    [this] (auto&&, const auto& reason) { this->onRegFailure(reason); });
+  
 }
 
 shared_ptr<Data>
-NdnPoke::createData() const
+NdnPoke::createData(std::string s) const
 {
-  auto data = make_shared<Data>(m_options.name);
+  auto data = make_shared<Data>(s);  
   data->setFreshnessPeriod(m_options.freshnessPeriod);
-  if (m_options.wantFinalBlockId) {
-    data->setFinalBlock(m_options.name.at(-1));
-  }
+  //if (m_options.wantFinalBlockId) {
+//    data->setFinalBlock(m_options.name.at(-1));
+//  }
 
   //OBufferStream os;
   //os << m_input.rdbuf();
   //data->setContent(os.buf());
-  
+
   std::stringstream ss;
-  ss.str("nfs://mnt/data");  
+  ss.str("nfs://mnt/data/" + s);
   OBufferStream obuf;
   obuf << ss.rdbuf();
   data->setContent(obuf.buf());
@@ -95,13 +97,9 @@ NdnPoke::sendData(const Data& data)
 void
 NdnPoke::onInterest(const Interest& interest, const Data& data)
 {
-  if (m_options.isVerbose) {
-    std::cerr << "INTEREST: " << interest << std::endl;
-  }
-
   if (interest.matchesData(data)) {
-    m_timeoutEvent.cancel();
-    m_registeredPrefix.cancel();
+    //m_timeoutEvent.cancel();
+    //m_registeredPrefix.cancel();
     sendData(data);
   }
   else if (m_options.isVerbose) {
@@ -116,23 +114,23 @@ NdnPoke::onRegSuccess()
     std::cerr << "Prefix registration successful" << std::endl;
   }
 
-  if (m_options.timeout) {
+  /*if (m_options.timeout) {
     m_timeoutEvent = m_scheduler.schedule(*m_options.timeout, [this] {
       m_result = Result::TIMEOUT;
-      m_registeredPrefix.cancel();
+      //m_registeredPrefix.cancel();
 
       if (m_options.isVerbose) {
         std::cerr << "TIMEOUT" << std::endl;
       }
     });
-  }
+  }*/
 }
 
 void
 NdnPoke::onRegFailure(const std::string& reason)
 {
-  m_result = Result::PREFIX_REG_FAIL;
-  std::cerr << "Prefix registration failure (" << reason << ")" << std::endl;
+//  m_result = Result::PREFIX_REG_FAIL;
+//  std::cerr << "Prefix registration failure (" << reason << ")" << std::endl;
 }
 
 } // namespace peek

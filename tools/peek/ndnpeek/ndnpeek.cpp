@@ -35,7 +35,7 @@ namespace peek {
 NdnPeek::NdnPeek(Face& face, const PeekOptions& options)
   : m_options(options)
   , m_face(face)
-  , m_scheduler(m_face.getIoService())
+  //, m_scheduler(m_face.getIoService())
 {
 }
 
@@ -47,7 +47,7 @@ NdnPeek::start()
                                              [this] (auto&&, const auto& nack) { this->onNack(nack); },
                                              [this] (auto&&) { this->onTimeout(); });
 
-  if (m_options.timeout) {
+  /*if (m_options.timeout) {
     m_timeoutEvent = m_scheduler.schedule(*m_options.timeout, [this] {
       m_pendingInterest.cancel();
       onTimeout();
@@ -55,6 +55,7 @@ NdnPeek::start()
   }
 
   m_sendTime = time::steady_clock::now();
+  */
 }
 
 Interest
@@ -63,19 +64,15 @@ NdnPeek::createInterest() const
   Interest interest(m_options.name);
   interest.setCanBePrefix(m_options.canBePrefix);
   interest.setMustBeFresh(m_options.mustBeFresh);
-  if (m_options.link) {
-    interest.setForwardingHint(m_options.link->getDelegationList());
-  }
-  interest.setInterestLifetime(m_options.interestLifetime);
-  interest.setHopLimit(m_options.hopLimit);
-  if (m_options.applicationParameters) {
-    interest.setApplicationParameters(m_options.applicationParameters);
-  }
-
-  if (m_options.isVerbose) {
-    std::cerr << "INTEREST: " << interest << std::endl;
-  }
-
+  //if (m_options.link) {
+//    interest.setForwardingHint(m_options.link->getDelegationList());
+//  }
+  //interest.setInterestLifetime(m_options.interestLifetime);
+  //interest.setHopLimit(m_options.hopLimit);
+  //if (m_options.applicationParameters) {
+  //  interest.setApplicationParameters(m_options.applicationParameters);
+//}
+ 
   return interest;
 }
 
@@ -83,36 +80,18 @@ void
 NdnPeek::onData(const Data& data)
 {
   m_result = Result::DATA;
-  m_timeoutEvent.cancel();
-
-  if (m_options.isVerbose) {
-    std::cerr << "DATA: " << data.getName() << "\nRTT: "
-              << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_sendTime).count()
-              << " ms" << std::endl;
-  }
-
-  if (m_options.wantPayloadOnly) {
-    const Block& block = data.getContent();
-    std::cout.write(reinterpret_cast<const char*>(block.value()), block.value_size());
-  }
-  else {
-    const Block& block = data.wireEncode();
-    std::cout.write(reinterpret_cast<const char*>(block.wire()), block.size());
-  }
+  //m_timeoutEvent.cancel();  
+  const Block& block = data.getContent();
+  std::cout.write(reinterpret_cast<const char*>(block.value()), block.value_size());  
 }
 
 void
 NdnPeek::onNack(const lp::Nack& nack)
 {
   m_result = Result::NACK;
-  m_timeoutEvent.cancel();
+  //m_timeoutEvent.cancel();
 
   lp::NackHeader header = nack.getHeader();
-  if (m_options.isVerbose) {
-    std::cerr << "NACK: " << header.getReason() << "\nRTT: "
-              << time::duration_cast<time::milliseconds>(time::steady_clock::now() - m_sendTime).count()
-              << " ms" << std::endl;
-  }
 
   if (m_options.wantPayloadOnly) {
     std::cout << header.getReason() << std::endl;
@@ -127,11 +106,11 @@ void
 NdnPeek::onTimeout()
 {
   m_result = Result::TIMEOUT;
-  m_timeoutEvent.cancel();
+  //m_timeoutEvent.cancel();
 
-  if (m_options.isVerbose) {
+  //if (m_options.isVerbose) {
     std::cerr << "TIMEOUT" << std::endl;
-  }
+  //}
 }
 
 } // namespace peek

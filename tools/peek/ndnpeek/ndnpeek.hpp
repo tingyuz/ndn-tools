@@ -47,15 +47,15 @@ struct PeekOptions
   Name name;
   bool canBePrefix = false;
   bool mustBeFresh = false;
-  shared_ptr<Link> link;
-  time::milliseconds interestLifetime = DEFAULT_INTEREST_LIFETIME;
-  optional<uint8_t> hopLimit;
-  shared_ptr<Buffer> applicationParameters;
+  //shared_ptr<Link> link;
+  //time::milliseconds interestLifetime = DEFAULT_INTEREST_LIFETIME;
+  //optional<uint8_t> hopLimit;
+  //shared_ptr<Buffer> applicationParameters;
 
   // program behavior options
-  bool isVerbose = false;
+  //bool isVerbose = false;
   bool wantPayloadOnly = false;
-  optional<time::milliseconds> timeout;
+  //optional<time::milliseconds> timeout;
 };
 
 class NdnPeek : boost::noncopyable
@@ -112,10 +112,10 @@ private:
 private:
   const PeekOptions m_options;
   Face& m_face;
-  Scheduler m_scheduler;
-  time::steady_clock::TimePoint m_sendTime;
+  //Scheduler m_scheduler;
+  //time::steady_clock::TimePoint m_sendTime;
   ScopedPendingInterestHandle m_pendingInterest;
-  scheduler::ScopedEventId m_timeoutEvent;
+  //scheduler::ScopedEventId m_timeoutEvent;
   Result m_result = Result::UNKNOWN;
 };
 

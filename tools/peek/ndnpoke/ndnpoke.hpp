@@ -48,8 +48,7 @@ struct PokeOptions
   security::SigningInfo signingInfo;
 
   // program behavior options
-  bool isVerbose = false;
-  bool wantUnsolicited = false;
+  bool isVerbose = false;  
   optional<time::milliseconds> timeout;
 };
 
@@ -81,7 +80,7 @@ public:
 
 private:
   shared_ptr<Data>
-  createData() const;
+  createData(std::string s) const;
   //shared_ptr<Data>
   //createData(std::string name) const;
 
@@ -103,7 +102,7 @@ private:
   KeyChain& m_keyChain;
   //std::istream& m_input;
   Scheduler m_scheduler;
-  ScopedRegisteredPrefixHandle m_registeredPrefix;
+//  ScopedRegisteredPrefixHandle m_registeredPrefix;
   scheduler::ScopedEventId m_timeoutEvent;
   Result m_result = Result::UNKNOWN;
 };
