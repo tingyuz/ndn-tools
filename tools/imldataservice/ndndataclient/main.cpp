@@ -87,7 +87,7 @@ main(int argc, char* argv[])
   try {
     Face face;
     NdnDataclient program(face, options);
-       
+
     program.start();
     face.processEvents();
 
@@ -104,9 +104,9 @@ main(int argc, char* argv[])
 } // namespace dell
 } // namespace ndn
 
-//int
-//main(int argc, char* argv[])
-//{
-//  return ndn::dell::dataservice::main(argc, argv);
-//}
+int
+main(int argc, char* argv[])
+{
+  return ndn::dell::dataservice::main(argc, argv);
+}
 

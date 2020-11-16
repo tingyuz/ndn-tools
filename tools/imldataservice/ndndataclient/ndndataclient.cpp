@@ -5,6 +5,7 @@
  */
 
 #include "ndndataclient.hpp"
+#include "served/served.hpp"
 
 namespace ndn {
 namespace dell{
@@ -39,10 +40,10 @@ void
 NdnDataclient::onData(const Data& data)
 {
   m_result = Result::DATA;
-  //m_timeoutEvent.cancel();  
+  //m_timeoutEvent.cancel();
   const Block& block = data.getContent();
   m_location = reinterpret_cast<const char*>(block.value()), block.value_size();
-  //std::cout.write(m_location);  
+  //std::cout.write(m_location);
 }
 
 void
@@ -71,6 +72,14 @@ NdnDataclient::onTimeout()
   //if (m_options.isVerbose) {
     std::cerr << "TIMEOUT" << std::endl;
   //}
+  served::multiplexer mux;
+    mux.handle("/api/v1/greeting")
+        .get([&](served::response &res, const served::request &req) {
+            std::string name = req.query["name"];
+            res.set_header("content-type", "application/json");
+            res << "{ \"content\": \"Hello, " << ((name.length() > 0) ? name : "world") << "!\" }\n";
+        });
+
 }
 
 } // namespace dataservice
