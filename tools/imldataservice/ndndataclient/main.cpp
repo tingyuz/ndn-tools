@@ -52,14 +52,18 @@ main(int argc, char const* argv[]) {
 			program.start();
 		  face.processEvents();
 
-      if (program.getLocation().empty())
-        res.set_status(404);
+      if (program.getLocation().empty() || 
+	  		program.getLocation().find('/') == std::string::npos)
+		{
+        	res.set_status(404);
+			res << "{ \"error\": \"failed to locate requested resource.\"}";
+		}
       else 
         {
           res.set_status(200);
           res << program.getLocation();
         }			  
-		});
+	});
 
   mux.handle("/locality")
 		.post([](served::response & res, const served::request & req) {
@@ -73,18 +77,18 @@ main(int argc, char const* argv[]) {
 			Face face;
 			ClientOptions options={
 			  std::string("/ndn/dell/" + name),
-        false,
-			  false,
-			  false,
+        		false,
+			 	false,
+			  	false,
 			};      
 
 			NdnDataclient program(face, options);
 
 			program.start();
-		  face.processEvents();
+		  	face.processEvents();
 
 			res << program.getLocation();
-		});  
+	});  
 
 	// Create the server and run with 10 handler threads.
 	served::net::server server("127.0.0.1", "8080", mux);
