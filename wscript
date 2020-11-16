@@ -3,15 +3,13 @@
 from waflib import Context, Logs, Utils
 import os, subprocess
 
-VERSION = '0.7.1'
-APPNAME = 'ndn-tools'
-GIT_TAG_PREFIX = 'ndn-tools-'
+VERSION = '0.0.1'
+APPNAME = 'IMLDataservice'
 
 def options(opt):
     opt.load(['compiler_cxx', 'gnu_dirs'])
     opt.load(['default-compiler-flags',
-              'coverage', 'sanitizers', 'boost',
-              'sphinx_build'],
+              'coverage', 'sanitizers', 'boost'],              
              tooldir=['.waf-tools'])
 
     optgrp = opt.add_option_group('Tools Options')
@@ -22,8 +20,7 @@ def options(opt):
 
 def configure(conf):
     conf.load(['compiler_cxx', 'gnu_dirs',
-               'default-compiler-flags', 'boost',
-               'sphinx_build'])
+               'default-compiler-flags', 'boost'])
 
     conf.env.WITH_TESTS = conf.options.with_tests
 
@@ -58,8 +55,7 @@ def configure(conf):
 
     conf.msg('Tools to build', ', '.join(conf.env.BUILD_TOOLS))
 
-def build(bld):
-    version(bld)
+def build(bld):    
 
     bld(features='subst',
         name='version.cpp',
@@ -82,67 +78,3 @@ def build(bld):
 
     bld.recurse('tools')
     bld.recurse('tests')
-
-    if bld.env.SPHINX_BUILD:
-        bld(features='sphinx',
-            name='manpages',
-            builder='man',
-            config='manpages/conf.py',
-            outdir='manpages',
-            source=bld.path.ant_glob('manpages/*.rst'),
-            install_path='${MANDIR}',
-            version=VERSION_BASE,
-            release=VERSION)
-
-def version(ctx):
-    # don't execute more than once
-    if getattr(Context.g_module, 'VERSION_BASE', None):
-        return
-
-    Context.g_module.VERSION_BASE = Context.g_module.VERSION
-    Context.g_module.VERSION_SPLIT = VERSION_BASE.split('.')
-
-    # first, try to get a version string from git
-    gotVersionFromGit = False
-    try:
-        cmd = ['git', 'describe', '--always', '--match', '%s*' % GIT_TAG_PREFIX]
-        out = subprocess.check_output(cmd, universal_newlines=True).strip()
-        if out:
-            gotVersionFromGit = True
-            if out.startswith(GIT_TAG_PREFIX):
-                Context.g_module.VERSION = out.lstrip(GIT_TAG_PREFIX)
-            else:
-                # no tags matched
-                Context.g_module.VERSION = '%s-commit-%s' % (VERSION_BASE, out)
-    except (OSError, subprocess.CalledProcessError):
-        pass
-
-    versionFile = ctx.path.find_node('VERSION.info')
-    if not gotVersionFromGit and versionFile is not None:
-        try:
-            Context.g_module.VERSION = versionFile.read()
-            return
-        except EnvironmentError:
-            pass
-
-    # version was obtained from git, update VERSION file if necessary
-    if versionFile is not None:
-        try:
-            if versionFile.read() == Context.g_module.VERSION:
-                # already up-to-date
-                return
-        except EnvironmentError as e:
-            Logs.warn('%s exists but is not readable (%s)' % (versionFile, e.strerror))
-    else:
-        versionFile = ctx.path.make_node('VERSION.info')
-
-    try:
-        versionFile.write(Context.g_module.VERSION)
-    except EnvironmentError as e:
-        Logs.warn('%s is not writable (%s)' % (versionFile, e.strerror))
-
-def dist(ctx):
-    version(ctx)
-
-def distcheck(ctx):
-    version(ctx)

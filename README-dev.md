@@ -1,28 +1,4 @@
-# Notes for ndn-tools Developers
-
-## Licensing Requirements
-
-Contributions to ndn-tools must be licensed under the GPL 3.0 or a compatible license.
-If you choose GPL 3.0, include the following license boilerplate into all C++ code files:
-
-    /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-    /*
-     * Copyright (c) [Year(s)] [Copyright Holder(s)].
-     *
-     * This file is part of ndn-tools (Named Data Networking Essential Tools).
-     * See AUTHORS.md for complete list of ndn-tools authors and contributors.
-     *
-     * ndn-tools is free software: you can redistribute it and/or modify it under the terms
-     * of the GNU General Public License as published by the Free Software Foundation,
-     * either version 3 of the License, or (at your option) any later version.
-     *
-     * ndn-tools is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-     * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     * PURPOSE.  See the GNU General Public License for more details.
-     *
-     * You should have received a copy of the GNU General Public License along with
-     * ndn-tools, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
-     */
+# Notes for IML Dataservice Developers
 
 ## Directory Structure and Build Script
 
@@ -50,9 +26,6 @@ The `wscript` of a tool can link a program with modules in `core/` with `use='co
 
 A file named `README.md` in the subdirectory of each tool should provide a brief
 description.
-
-Manual pages for each program should be written in reStructuredText format
-and placed in the [`manpages`](manpages) directory.
 
 ## Code Guidelines
 

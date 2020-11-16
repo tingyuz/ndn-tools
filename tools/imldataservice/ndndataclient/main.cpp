@@ -29,7 +29,7 @@ main(int argc, char const* argv[]) {
 	served::multiplexer mux;
 
 	// simple http hander
-	mux.handle("/interest/")
+	mux.handle("/interest")
 		.post([](served::response & res, const served::request & req) {
       
       std::stringstream ss;

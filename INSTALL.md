@@ -1,6 +1,6 @@
-# ndn-tools Build Instructions
+# IML dataservice Build Instructions
 
-This document describes how to build and install ndn-tools.
+This document describes how to build and install ndndataservice and ndndataclient.
 
 ## Prerequisites
 
@@ -10,30 +10,18 @@ This document describes how to build and install ndn-tools.
    Note: If you have installed ndn-cxx from a binary package, please make sure development headers
    are installed (e.g., if using Ubuntu PPA, the `libndn-cxx-dev` package is needed).
 
-   Any operating system and compiler supported by ndn-cxx is supported by ndn-tools.
+-  `libserved`
 
--  `libpcap`
-
-    Comes with the base system on macOS.
-
-    On Ubuntu:
-
-        sudo apt install libpcap-dev
-
-    On CentOS and Fedora:
-
-        sudo dnf config-manager --enable PowerTools  # CentOS only
-        sudo dnf install libpcap-devel
+-  boost library 1.65.1 ( the higher version may cause failure)
 
 ## Build Steps
 
-To configure, compile, and install ndn-tools, type the following commands
-in ndn-tools source directory:
+Type the following commands in the source directory:
 
     ./waf configure
     ./waf
     sudo ./waf install
 
-To uninstall ndn-tools:
+To uninstall:
 
     sudo ./waf uninstall
