@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2020 
+ * Copyright (c) 2020 DELL
  * @author Tingyu Zeng
  */
 
@@ -42,8 +42,7 @@ NdnDataclient::onData(const Data& data)
   m_result = Result::DATA;
   //m_timeoutEvent.cancel();
   const Block& block = data.getContent();
-  m_location = reinterpret_cast<const char*>(block.value()), block.value_size();
-  //std::cout.write(m_location);
+  m_location = reinterpret_cast<const char*>(block.value()), block.value_size();  
 }
 
 void
@@ -71,15 +70,7 @@ NdnDataclient::onTimeout()
 
   //if (m_options.isVerbose) {
     std::cerr << "TIMEOUT" << std::endl;
-  //}
-  served::multiplexer mux;
-    mux.handle("/api/v1/greeting")
-        .get([&](served::response &res, const served::request &req) {
-            std::string name = req.query["name"];
-            res.set_header("content-type", "application/json");
-            res << "{ \"content\": \"Hello, " << ((name.length() > 0) ? name : "world") << "!\" }\n";
-        });
-
+  //}  
 }
 
 } // namespace dataservice

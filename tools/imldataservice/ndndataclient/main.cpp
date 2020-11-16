@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2020
+ * Copyright (c) 2020 DELL
  * @author Tingyu Zeng
  */
 
@@ -10,6 +10,7 @@
 #include <ndn-cxx/util/io.hpp>
 
 #include <served/served.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include <cerrno>
 #include <cstring>
@@ -22,30 +23,68 @@ namespace ndn {
 namespace dell{
 namespace dataservice {
 
-namespace po = boost::program_options;
-
 static int 
 main(int argc, char const* argv[]) {
 	// Create a multiplexer for handling requests
 	served::multiplexer mux;
 
-	// GET /hello
-	mux.handle("/hello")
-		.get([](served::response & res, const served::request & req) {
+	// simple http hander
+	mux.handle("/interest/")
+		.post([](served::response & res, const served::request & req) {
+      
+      std::stringstream ss;
+      //ss << "{ \"hash\": \"4445SDFRE4HDH\", \"mode\": \"sync\", \"name\": \"/ndn/dell/ep1\", \"callback\": \"http://localhost:8008/data/4445SDFRE4HDH\"}"; 
+      ss << req.body();
+      boost::property_tree::ptree pt;
+      boost::property_tree::read_json(ss, pt);
+      std::string name = pt.get<std::string>("name");
+      
 			Face face;
 			ClientOptions options={
-			 "/ndn/dell/ep1",
-                          false,
+			  std::string("/ndn/dell/" + name),
+        false,
 			  false,
 			  false,
 			};
+
 			NdnDataclient program(face, options);
 
 			program.start();
-		        face.processEvents();
+		  face.processEvents();
+
+      if (program.getLocation().empty())
+        res.set_status(404);
+      else 
+        {
+          res.set_status(200);
+          res << program.getLocation();
+        }			  
+		});
+
+  mux.handle("/locality")
+		.post([](served::response & res, const served::request & req) {
+
+      std::stringstream ss;
+      ss << req.body();
+      boost::property_tree::ptree pt;
+      boost::property_tree::read_json(ss, pt);
+      std::string name = pt.get<std::string>("name");
+
+			Face face;
+			ClientOptions options={
+			  std::string("/ndn/dell/" + name),
+        false,
+			  false,
+			  false,
+			};      
+
+			NdnDataclient program(face, options);
+
+			program.start();
+		  face.processEvents();
 
 			res << program.getLocation();
-		});
+		});  
 
 	// Create the server and run with 10 handler threads.
 	served::net::server server("127.0.0.1", "8080", mux);
@@ -53,76 +92,6 @@ main(int argc, char const* argv[]) {
 
 	return (EXIT_SUCCESS);
 }
-
-/*int
-__main(int argc, char* argv[])
-{
-  std::string progName(argv[0]);
-  ClientOptions options;
-
-  po::options_description genericOptDesc("Generic options");
-  genericOptDesc.add_options()
-    ("help,h",    "print help and exit")
-  ;
-
-  po::options_description visibleOptDesc;
-  visibleOptDesc.add(genericOptDesc);
-
-   po::options_description hiddenOptDesc;
-  hiddenOptDesc.add_options()
-    ("name", po::value<std::string>(), "Interest name");
-
-  po::options_description optDesc;
-  optDesc.add(visibleOptDesc).add(hiddenOptDesc);
-
-  po::positional_options_description optPos;
-  optPos.add("name", -1);
-  
-  po::variables_map vm;
-  try {
-    po::store(po::command_line_parser(argc, argv).options(optDesc).positional(optPos).run(), vm);
-    po::notify(vm);
-  }
-  catch (const po::error& e) {
-    std::cerr << "ERROR: " << e.what() << std::endl;
-    return 2;
-  }
-
-  if (vm.count("help") > 0) {
-    usage(std::cout, progName, visibleOptDesc);
-    return 0;
-  }
-
-  if (vm.count("name") == 0) {
-    std::cerr << "ERROR: missing name\n\n";
-    usage(std::cerr, progName, visibleOptDesc);
-    return 2;
-  }
-
-  try {
-    options.name = vm["name"].as<std::string>();
-  }
-  catch (const Name::Error& e) {
-    std::cerr << "ERROR: invalid name: " << e.what() << std::endl;
-    return 2;
-  }
-
-  try {
-    Face face;
-    NdnDataclient program(face, options);
-
-    program.start();
-    face.processEvents();
-
-    std::cout << program.getLocation() << std::endl;
-    return static_cast<int>(program.getResult());
-  }
-  catch (const std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << std::endl;
-    return 1;
-  }
-}*/
-
 } // namespace dataservice
 } // namespace dell
 } // namespace ndn

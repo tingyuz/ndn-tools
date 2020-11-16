@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2020
+ * Copyright (c) 2020 DELL
  *
  * @author Tingyu Zeng
  */
