@@ -30,7 +30,7 @@ def configure(conf):
     conf.check_cfg(package='libndn-cxx', args=['--cflags', '--libs'], uselib_store='NDN_CXX',
                    pkg_config_path=os.environ.get('PKG_CONFIG_PATH', '%s/pkgconfig' % conf.env.LIBDIR))
 
-    boost_libs = ['system', 'program_options', 'filesystem', 'beast', 'asio']
+    boost_libs = ['system', 'program_options', 'filesystem']
     if conf.env.WITH_TESTS:
         boost_libs.append('unit_test_framework')
         conf.define('WITH_TESTS', 1)

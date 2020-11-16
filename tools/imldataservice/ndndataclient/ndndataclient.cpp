@@ -41,7 +41,7 @@ NdnDataclient::onData(const Data& data)
   m_result = Result::DATA;
   //m_timeoutEvent.cancel();  
   const Block& block = data.getContent();
-  m_location = reinterpret_cast<const char*>(block.value()), block.value_size()
+  m_location = reinterpret_cast<const char*>(block.value()), block.value_size();
   //std::cout.write(m_location);  
 }
 
