@@ -9,6 +9,8 @@
 
 #include <ndn-cxx/util/io.hpp>
 
+#include <served/served.hpp>
+
 #include <cerrno>
 #include <cstring>
 #include <fstream>
@@ -22,29 +24,50 @@ namespace dataservice {
 
 namespace po = boost::program_options;
 
-static void
-usage(std::ostream& os, const std::string& program, const po::options_description& options)
-{
-  os << "Usage: " << program << " /name\n"
-     << "\n"
-     << "Fetch one data item matching the specified name and write it to the standard output.\n"
-     << options;
+static int 
+main(int argc, char const* argv[]) {
+	// Create a multiplexer for handling requests
+	served::multiplexer mux;
+
+	// GET /hello
+	mux.handle("/hello")
+		.get([](served::response & res, const served::request & req) {
+			Face face;
+			ClientOptions options={
+			 "/ndn/dell/ep1",
+                          false,
+			  false,
+			  false,
+			};
+			NdnDataclient program(face, options);
+
+			program.start();
+		        face.processEvents();
+
+			res << program.getLocation();
+		});
+
+	// Create the server and run with 10 handler threads.
+	served::net::server server("127.0.0.1", "8080", mux);
+	server.run(10);
+
+	return (EXIT_SUCCESS);
 }
 
-static int
-main(int argc, char* argv[])
+/*int
+__main(int argc, char* argv[])
 {
   std::string progName(argv[0]);
   ClientOptions options;
 
   po::options_description genericOptDesc("Generic options");
   genericOptDesc.add_options()
-    ("help,h",    "print help and exit")    
+    ("help,h",    "print help and exit")
   ;
 
   po::options_description visibleOptDesc;
   visibleOptDesc.add(genericOptDesc);
-  
+
    po::options_description hiddenOptDesc;
   hiddenOptDesc.add_options()
     ("name", po::value<std::string>(), "Interest name");
@@ -98,14 +121,14 @@ main(int argc, char* argv[])
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
   }
-}
+}*/
 
 } // namespace dataservice
 } // namespace dell
 } // namespace ndn
 
 int
-main(int argc, char* argv[])
+main(int argc, char const* argv[])
 {
   return ndn::dell::dataservice::main(argc, argv);
 }
